@@ -1,0 +1,109 @@
+<html>
+	<head>
+		<title>DockMaster</title>
+		<script src="./node_modules/jquery/dist/jquery.min.js"></script>
+		<script src="./node_modules/jquery-ui-bundle/jquery-ui.min.js"></script>
+		<link rel="stylesheet" href="./node_modules/jquery-ui-bundle/jquery-ui.min.css">
+		<script src="./DockMaster.js"></script>
+		<link rel="stylesheet" href="./DockMaster.css">
+	</head>
+	<body>
+		<div id="root" style="width: 800px; height: 600px; background-color: green"></div>
+		<div id="log" style="position:absolute; top:8px; left:810px; width:300px; height:598px; overflow-y: auto; border: 1px solid black;"></div>
+		<div>
+			<table>
+				<tr>
+					<td colspan="99">Create pane</td>
+				</tr>
+				<tr>
+					<td>Place</td>
+					<td>Title</td>
+					<td>Content</td>
+				</tr>
+				<tr>
+					<td>
+						<select id="place">
+							<option value="0">Floating</option>
+							<option value="1">Left</option>
+							<option value="2">Right</option>
+							<option value="4">Top</option>
+							<option value="8">Bottom</option>
+							<option value="256">Tab</option>
+						</select>
+					</td>
+					<td><input id="title" value="Pane X" /></td>
+					<td><input id="content" value="&lt;div>test&lt;/div>" /></td>
+					<td><button onclick="CreatePane()">Create</button></td>
+				</tr>
+				<tr>
+					<td colspan="99">
+						<button onclick="CreatePane(0)">Create Floating</button>
+						<button onclick="CreatePane(1)">Create Left</button>
+						<button onclick="CreatePane(2)">Create Right</button>
+						<button onclick="CreatePane(4)">Create Top</button>
+						<button onclick="CreatePane(8)">Create Bottom</button>
+						<button onclick="CreatePane(256)">Create Tab</button>
+						<button onclick="Create2Tabs()">Create 2 tabs</button>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="99">
+						<span>Allow pane closure:&nbsp;</span>
+						<select id="closure">
+							<option value="1">Yes</option>
+							<option value="0">No</option>
+							<option value="2">Confirm</option>
+						</select>
+					</td>
+				</tr>
+			</table>
+		</div>
+
+<script>
+	var dockContainer;
+	var index=0;
+	var closureSelect=document.getElementById("closure");
+	$(document).ready(function() {
+		dockContainer = DockMaster.InitContainer($("#root")[0]);
+		dockContainer.Closing.Add(function(pane,e)
+		{
+			e.Allow=
+				closureSelect.value==1?true:
+				closureSelect.value==0?false:
+				window.confirm("Close the \""+pane.Title+"\" pane?");
+		});
+	});
+
+	function CreatePane(placeParm)
+	{
+		var place=placeParm==undefined?parseInt(document.getElementById("place").value):placeParm;
+		var title=document.getElementById("title").value;
+		var content=document.getElementById("content").value;
+
+		var pane=dockContainer.CreatePane(title+(++index), $.parseHTML(content+index));
+		pane.Width=100;
+		pane.Height=100;
+		if (place==0)
+			pane.Float(pane,10,10);
+		else if (place==256)
+			dockContainer.RootTabControl.AddTab(pane);
+		else
+			dockContainer.Dock(pane,place);
+	}
+
+	function Create2Tabs()
+	{
+		var area=dockContainer.RootTabControl;
+		var pane=dockContainer.CreatePane("Pane 1", $.parseHTML("Pane 1"));
+		area.AddTab(pane);
+
+		area=dockContainer.CreateArea(area,2);
+		pane=dockContainer.CreatePane("Pane 2", $.parseHTML("Pane 2"));
+		area.AddTab(pane);
+
+		pane=dockContainer.CreatePane("Pane 3", $.parseHTML("Pane 3"));
+		pane.Float(pane,10,10);
+	}
+</script>
+	</body>
+</html>
